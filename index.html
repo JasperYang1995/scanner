@@ -4,18 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>營業中心機號刷寫系統</title>
+    <title>倉儲管理系統 - 完整旗艦版</title>
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 
     <style>
         body {
-            background-color: #f0f2f5;
+            background-color: #f4f6f8;
             padding-bottom: 80px;
+            font-family: "Microsoft JhengHei", sans-serif;
         }
 
         .main-container {
-            max-width: 950px;
+            max-width: 1200px;
             margin: 30px auto;
             background: #fff;
             padding: 25px;
@@ -23,32 +26,48 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
 
-        /* 資訊核對區塊 */
-        .info-box {
-            background-color: #eef2f7;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-left: 6px solid #0d6efd;
+        /* 狀態標籤 */
+        .badge-posted {
+            background-color: #6c757d;
+            color: white;
         }
 
-        .info-box.return-mode {
-            background-color: #fff4f4;
-            border-left-color: #dc3545;
+        .badge-pending {
+            background-color: #198754;
+            color: white;
         }
 
-        .progress-text {
-            font-size: 2rem;
-            font-weight: 800;
-            color: #198754;
-        }
-
-        .badge-status-ship {
+        .badge-ship {
             background-color: #0d6efd;
+            color: white;
         }
 
-        .badge-status-return {
+        .badge-return {
             background-color: #dc3545;
+            color: white;
+        }
+
+        /* 單號連結 */
+        .order-link {
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+            border-bottom: 1px dashed #ccc;
+            transition: 0.2s;
+        }
+
+        .order-link:hover {
+            background-color: #e9ecef;
+            border-bottom: 1px solid #000;
+            color: #000 !important;
+        }
+
+        .link-pending {
+            color: #0d6efd;
+        }
+
+        .link-posted {
+            color: #6c757d;
         }
 
         /* 測試小幫手 */
@@ -56,22 +75,13 @@
             position: fixed;
             top: 100px;
             right: 20px;
-            width: 240px;
+            width: 260px;
             background: #fff;
             border: 2px dashed #ffc107;
             padding: 15px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             z-index: 1050;
-            font-size: 0.85rem;
             border-radius: 8px;
-        }
-
-        .test-helper h6 {
-            font-weight: bold;
-            color: #d63384;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 8px;
-            margin-bottom: 10px;
         }
 
         .btn-sim {
@@ -82,7 +92,7 @@
             font-size: 0.8rem;
         }
 
-        @media (max-width: 1300px) {
+        @media (max-width: 1400px) {
             .test-helper {
                 display: none;
             }
@@ -92,138 +102,85 @@
 
 <body>
 
-    <!-- 測試小幫手 (懸浮視窗) -->
+    <!-- 測試小幫手 -->
     <div class="test-helper d-none d-lg-block">
-        <h6>🛠️ 模擬掃描神器</h6>
-        <small class="text-muted d-block mb-2">點擊按鈕模擬 Scanner 動作</small>
+        <h6 class="fw-bold text-primary mb-3"><i class="bi bi-robot"></i> 測試模擬面板</h6>
 
-        <strong>1. 模擬【出貨】單號</strong>
-        <button class="btn btn-sm btn-outline-primary btn-sim" onclick="simulateScan('order', 'SHIP-20251224')">📄
-            SHIP-20251224 (5台)<br><small>客戶: 大明電器行</small></button>
-        <button class="btn btn-sm btn-outline-primary btn-sim" onclick="simulateScan('order', 'SHIP-20251225')">📄
-            SHIP-20251225 (3台)<br><small>客戶: 小陳電器行</small></button>
+        <div class="text-muted small fw-bold mb-1">Step 1. 模擬【掃描單號】</div>
+        <button class="btn btn-sm btn-outline-primary btn-sim" onclick="simulateScan('order', 'SHIP-20251224')">
+            📄 SHIP-20251224 (出貨)<br><small class="text-dark">客戶: 大明電器行 (5台)</small>
+        </button>
+        <button class="btn btn-sm btn-outline-danger btn-sim" onclick="simulateScan('order', 'RET-20250105')">
+            📄 RET-20250105 (銷退)<br><small class="text-dark">退貨: 小陳電器行 (2台)</small>
+        </button>
 
-        <strong class="d-block mt-2">2. 模擬【銷退】單號</strong>
-        <button class="btn btn-sm btn-outline-danger btn-sim" onclick="simulateScan('order', 'RET-20250105')">📄
-            RET-20250105 (2台)<br><small>退貨: 大明電器行</small></button>
-        <button class="btn btn-sm btn-outline-danger btn-sim" onclick="simulateScan('order', 'RET-20250108')">📄
-            RET-20250108 (10台)<br><small>退貨: 阿華影音</small></button>
-
-        <strong class="d-block mt-2">3. 模擬掃描機號</strong>
+        <div class="text-muted small fw-bold mt-3 mb-1">Step 2. 模擬【掃描機號】</div>
         <button class="btn btn-sm btn-outline-dark btn-sim" onclick="simulateScan('item', 'FI-29CSG-1001')">📦
             FI-29CSG-1001</button>
         <button class="btn btn-sm btn-outline-dark btn-sim" onclick="simulateScan('item', 'FI-41CSG-2002')">📦
             FI-41CSG-2002</button>
-        <button class="btn btn-sm btn-outline-dark btn-sim" onclick="simulateScan('item', 'FI-63CSG-3005')">📦
-            FI-63CSG-3005</button>
-        <button class="btn btn-sm btn-outline-dark btn-sim" onclick="simulateScan('item', 'GEN-RANDOM')">🎲
-            隨機產生機號</button>
+        <button class="btn btn-sm btn-outline-success btn-sim" onclick="simulateScan('item', 'GEN-RANDOM')">🎲
+            產生隨機機號</button>
     </div>
 
     <div class="container main-container">
-        <h2 class="text-center mb-4"><i class="bi bi-boxes"></i> 營業中心機號查詢系統</h2>
+        <h3 class="text-center mb-4 fw-bold"><i class="bi bi-box-seam-fill"></i> 倉儲物流管理系統</h3>
 
-        <!-- 導航頁籤 -->
+        <!-- 頁籤 -->
         <ul class="nav nav-tabs nav-fill mb-4" id="mainTab" role="tablist">
-            <li class="nav-item">
-                <button class="nav-link active fw-bold" id="ship-tab" data-bs-toggle="tab" data-bs-target="#ship-pane"
-                    type="button">
-                    <i class="bi bi-truck"></i> 出貨單作業
-                </button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link fw-bold text-danger" id="return-tab" data-bs-toggle="tab"
-                    data-bs-target="#return-pane" type="button">
-                    <i class="bi bi-arrow-return-left"></i> 銷退單作業
-                </button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link fw-bold text-dark" id="query-tab" data-bs-toggle="tab"
-                    data-bs-target="#query-pane" type="button" onclick="refreshQueryTable()">
-                    <i class="bi bi-search"></i> 查詢列表
-                </button>
-            </li>
+            <li class="nav-item"><button class="nav-link active fw-bold" id="ship-tab" data-bs-toggle="tab"
+                    data-bs-target="#ship-pane">出貨單作業</button></li>
+            <li class="nav-item"><button class="nav-link fw-bold text-danger" id="return-tab" data-bs-toggle="tab"
+                    data-bs-target="#return-pane">銷退單作業</button></li>
+            <li class="nav-item"><button class="nav-link fw-bold text-dark" id="query-tab" data-bs-toggle="tab"
+                    data-bs-target="#query-pane" onclick="refreshQueryTable()">歷史查詢列表</button></li>
         </ul>
 
         <div class="tab-content">
 
             <!-- ================= 出貨單頁面 ================= -->
             <div class="tab-pane fade show active" id="ship-pane">
-                <!-- 步驟 1 -->
                 <div class="card mb-3">
-                    <div class="card-body d-flex gap-2">
-                        <div class="flex-grow-1">
-                            <label class="form-label fw-bold">Step 1. 掃描出貨單號</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-qr-code"></i></span>
-                                <input type="text" class="form-control" id="shipOrderInput"
-                                    placeholder="掃描單號 (例: SHIP-20251224)">
-                                <button class="btn btn-primary" onclick="fetchOrderData('ship')">讀取 T-100</button>
-                            </div>
+                    <div class="card-body bg-light">
+                        <label class="fw-bold">Step 1. 掃描出貨單號</label>
+                        <div class="input-group"><span class="input-group-text"><i class="bi bi-qr-code"></i></span>
+                            <input type="text" class="form-control" id="shipOrderInput" placeholder="請掃描出貨單 Barcode...">
+                            <button class="btn btn-primary" onclick="fetchOrderData('ship')">讀取 T-100</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- T-100 資料顯示區 -->
                 <div id="shipOrderInfo" class="d-none">
-                    <div class="info-box shadow-sm">
-                        <h5 class="border-bottom pb-2 mb-3 text-primary"><i class="bi bi-clipboard-check"></i> 出貨單據核對
-                        </h5>
-                        <div class="row g-3">
-                            <div class="col-md-3">
-                                <small class="text-muted">出貨單號</small><br><strong id="shipNoDisplay"
-                                    class="fs-5">--</strong>
-                            </div>
-                            <div class="col-md-3">
-                                <small class="text-muted">經銷商 (客戶)</small><br><strong id="shipDealerDisplay"
-                                    class="fs-5 text-dark">--</strong>
-                            </div>
-                            <div class="col-md-2">
-                                <small class="text-muted">出貨分公司</small><br><strong id="shipBranchDisplay">--</strong>
-                            </div>
-                            <div class="col-md-2">
-                                <small class="text-muted">出貨日期</small><br><strong id="shipDateDisplay">--</strong>
-                            </div>
-                            <div class="col-md-2 text-end">
-                                <small class="text-muted">應出台數</small><br><strong id="shipQtyDisplay"
-                                    class="text-danger fs-3">0</strong>
-                            </div>
+                    <div class="alert alert-primary d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>出貨單號：</strong><span id="shipNoDisplay">--</span>｜
+                            <strong>客戶：</strong><span id="shipDealerDisplay">--</span>｜
+                            <strong>應出數：</strong><span id="shipQtyDisplay" class="fw-bold fs-5">0</span>
                         </div>
+                        <span class="badge bg-light text-primary border">作業中</span>
                     </div>
-
-                    <!-- 步驟 2 -->
-                    <div class="card border-primary mb-3">
-                        <div class="card-header bg-primary text-white d-flex justify-content-between">
-                            <span>Step 2. 掃描機號</span>
-                            <span id="shipProgress" class="badge bg-light text-primary fs-6">進度: 0 / 0</span>
-                        </div>
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white">Step 2. 掃描機號</div>
                         <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-9">
-                                    <input type="text" class="form-control form-control-lg mb-3" id="shipItemInput"
-                                        placeholder="請掃描機號 Barcode..." autocomplete="off">
-                                    <div class="table-responsive" style="height: 200px; overflow-y: auto;">
-                                        <table class="table table-striped table-sm">
-                                            <thead class="sticky-top table-light">
-                                                <tr>
-                                                    <th>項次</th>
-                                                    <th>機號 (SN)</th>
-                                                    <th>掃描時間</th>
-                                                    <th>移除</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="shipListBody"></tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                                <div
-                                    class="col-md-3 d-flex flex-column justify-content-center align-items-center bg-light rounded">
-                                    <small class="text-muted">目前掃描數</small>
-                                    <div class="progress-text" id="shipCurrentCount">0</div>
-                                    <button class="btn btn-success w-100 mt-3 py-2" onclick="submitData('ship')">
-                                        <i class="bi bi-cloud-upload"></i> 確認送出
-                                    </button>
-                                </div>
+                            <input type="text" class="form-control mb-3" id="shipItemInput"
+                                placeholder="掃描機號 Barcode..." autocomplete="off">
+                            <div class="table-responsive" style="height: 180px; overflow-y: auto;">
+                                <table class="table table-sm table-striped">
+                                    <thead class="sticky-top table-light">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>機號</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="shipListBody"></tbody>
+                                </table>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <span class="fw-bold text-primary">目前進度: <span id="shipCurrentCount"
+                                        class="fs-4">0</span></span>
+                                <button class="btn btn-success fw-bold px-4" onclick="submitData('ship')"><i
+                                        class="bi bi-send"></i> 送出資料</button>
                             </div>
                         </div>
                     </div>
@@ -232,428 +189,520 @@
 
             <!-- ================= 銷退單頁面 ================= -->
             <div class="tab-pane fade" id="return-pane">
-                <div class="alert alert-danger py-2"><i class="bi bi-exclamation-triangle-fill"></i> 注意：此作業為經銷商退回分公司之單據。
-                </div>
-
-                <!-- 步驟 1 -->
                 <div class="card mb-3">
-                    <div class="card-body d-flex gap-2">
-                        <div class="flex-grow-1">
-                            <label class="form-label fw-bold text-danger">Step 1. 掃描銷退單號</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-qr-code"></i></span>
-                                <input type="text" class="form-control" id="returnOrderInput"
-                                    placeholder="掃描單號 (例: RET-20250105)">
-                                <button class="btn btn-danger" onclick="fetchOrderData('return')">讀取 T-100</button>
-                            </div>
+                    <div class="card-body bg-light">
+                        <label class="fw-bold text-danger">Step 1. 掃描銷退單號</label>
+                        <div class="input-group"><span class="input-group-text"><i class="bi bi-qr-code"></i></span>
+                            <input type="text" class="form-control" id="returnOrderInput"
+                                placeholder="請掃描銷退單 Barcode...">
+                            <button class="btn btn-danger" onclick="fetchOrderData('return')">讀取 T-100</button>
                         </div>
                     </div>
                 </div>
 
                 <div id="returnOrderInfo" class="d-none">
-                    <div class="info-box return-mode shadow-sm">
-                        <h5 class="border-bottom pb-2 mb-3 text-danger"><i class="bi bi-arrow-return-left"></i> 銷退單據核對
-                        </h5>
-                        <div class="row g-3">
-                            <div class="col-md-3">
-                                <small class="text-muted">銷退單號</small><br><strong id="returnNoDisplay"
-                                    class="fs-5">--</strong>
+                    <div class="alert alert-danger d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>銷退單號：</strong><span id="returnNoDisplay">--</span>｜
+                            <strong>來源：</strong><span id="returnDealerDisplay">--</span>｜
+                            <strong>應退數：</strong><span id="returnQtyDisplay" class="fw-bold fs-5">0</span>
+                        </div>
+                        <span class="badge bg-light text-danger border">作業中</span>
+                    </div>
+                    <div class="card border-danger">
+                        <div class="card-header bg-danger text-white">Step 2. 掃描退回機號</div>
+                        <div class="card-body">
+                            <input type="text" class="form-control mb-3" id="returnItemInput"
+                                placeholder="掃描機號 Barcode..." autocomplete="off">
+                            <div class="table-responsive" style="height: 180px; overflow-y: auto;">
+                                <table class="table table-sm table-striped">
+                                    <thead class="sticky-top table-light">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>機號</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="returnListBody"></tbody>
+                                </table>
                             </div>
-                            <div class="col-md-3">
-                                <small class="text-muted">退貨來源 (經銷商)</small><br><strong id="returnDealerDisplay"
-                                    class="fs-5 text-dark">--</strong>
-                            </div>
-                            <div class="col-md-2">
-                                <small class="text-muted">接收分公司</small><br><strong id="returnBranchDisplay">--</strong>
-                            </div>
-                            <div class="col-md-2">
-                                <small class="text-muted">銷退日期</small><br><strong id="returnDateDisplay">--</strong>
-                            </div>
-                            <div class="col-md-2 text-end">
-                                <small class="text-muted">應退台數</small><br><strong id="returnQtyDisplay"
-                                    class="text-danger fs-3">0</strong>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <span class="fw-bold text-danger">目前進度: <span id="returnCurrentCount"
+                                        class="fs-4">0</span></span>
+                                <button class="btn btn-danger fw-bold px-4" onclick="submitData('return')"><i
+                                        class="bi bi-send"></i> 送出資料</button>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <!-- 步驟 2 -->
-                    <div class="card border-danger mb-3">
-                        <div class="card-header bg-danger text-white d-flex justify-content-between">
-                            <span>Step 2. 掃描退回機號</span>
-                            <span id="returnProgress" class="badge bg-light text-danger fs-6">進度: 0 / 0</span>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-9">
-                                    <input type="text" class="form-control form-control-lg mb-3" id="returnItemInput"
-                                        placeholder="請掃描機號..." autocomplete="off">
-                                    <div class="table-responsive" style="height: 200px; overflow-y: auto;">
-                                        <table class="table table-striped table-sm">
-                                            <thead class="sticky-top table-light">
-                                                <tr>
-                                                    <th>項次</th>
-                                                    <th>機號 (SN)</th>
-                                                    <th>掃描時間</th>
-                                                    <th>移除</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="returnListBody"></tbody>
-                                        </table>
-                                    </div>
+            <!-- ================= 查詢列表頁面 (含所有篩選) ================= -->
+            <div class="tab-pane fade" id="query-pane">
+                <div class="card shadow">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-search"></i> 綜合查詢</span>
+                        <button class="btn btn-sm btn-outline-light" onclick="resetQuery()">清除條件</button>
+                    </div>
+                    <div class="card-body">
+                        <!-- 篩選條件列 -->
+                        <form id="queryForm" onsubmit="event.preventDefault(); refreshQueryTable();">
+                            <div class="row g-2 mb-3">
+                                <div class="col-md-2">
+                                    <label class="small text-muted">日期 (起)</label>
+                                    <input type="date" class="form-control form-control-sm" id="qStartDate">
                                 </div>
-                                <div
-                                    class="col-md-3 d-flex flex-column justify-content-center align-items-center bg-light rounded">
-                                    <small class="text-muted">目前掃描數</small>
-                                    <div class="progress-text" id="returnCurrentCount" style="color: #dc3545;">0</div>
-                                    <button class="btn btn-danger w-100 mt-3 py-2" onclick="submitData('return')">
-                                        <i class="bi bi-cloud-upload"></i> 確認銷退
+                                <div class="col-md-2">
+                                    <label class="small text-muted">日期 (迄)</label>
+                                    <input type="date" class="form-control form-control-sm" id="qEndDate">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="small text-muted">經銷商</label>
+                                    <input type="text" class="form-control form-control-sm" id="qDealer"
+                                        placeholder="輸入名稱...">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="small text-muted">關鍵字</label>
+                                    <input type="text" class="form-control form-control-sm" id="qKeyword"
+                                        placeholder="單號 / 機號">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="small text-muted">單據狀態</label>
+                                    <select class="form-select form-select-sm" id="qStatus">
+                                        <option value="">全部狀態</option>
+                                        <option value="pending">未過帳</option>
+                                        <option value="posted">已過帳</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="button" class="btn btn-primary btn-sm w-100"
+                                        onclick="refreshQueryTable()">
+                                        <i class="bi bi-filter"></i> 執行查詢
                                     </button>
                                 </div>
                             </div>
+                        </form>
+
+                        <!-- 資料列表 -->
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover align-middle text-center small">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="10%">狀態</th>
+                                        <th width="15%">單號 (點擊編輯)</th>
+                                        <th width="8%">類型</th>
+                                        <th width="12%">經銷商</th>
+                                        <th width="35%">機號列表 (SN)</th>
+                                        <th width="10%">作業日期</th>
+                                        <th width="10%">上限</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="queryTableBody">
+                                    <!-- JS 動態生成 -->
+                                </tbody>
+                            </table>
                         </div>
+                        <div class="text-end text-muted small mt-2">共 <span id="qTotalCount">0</span> 筆資料</div>
                     </div>
                 </div>
             </div>
-
-            <!-- ================= 查詢列表頁面 ================= -->
-            <div class="tab-pane fade" id="query-pane">
-                <div class="card">
-                    <div class="card-header bg-dark text-white">歷史作業查詢</div>
-                    <div class="card-body">
-                        <!-- 搜尋條件 -->
-                        <div class="row g-2 mb-3 align-items-end">
-                            <div class="col-md-2">
-                                <label class="small">單號/機號</label>
-                                <input type="text" class="form-control form-control-sm" id="qKeyword"
-                                    placeholder="關鍵字...">
-                            </div>
-                            <div class="col-md-2">
-                                <label class="small">經銷商</label>
-                                <input type="text" class="form-control form-control-sm" id="qDealer"
-                                    placeholder="經銷商名稱...">
-                            </div>
-                            <div class="col-md-2">
-                                <label class="small">作業類型</label>
-                                <select class="form-select form-select-sm" id="qType">
-                                    <option value="">全部</option>
-                                    <option value="出貨">出貨</option>
-                                    <option value="銷退">銷退</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="small">日期 (起)</label>
-                                <input type="date" class="form-control form-control-sm" id="qStart">
-                            </div>
-                            <div class="col-md-2">
-                                <label class="small">日期 (迄)</label>
-                                <input type="date" class="form-control form-control-sm" id="qEnd">
-                            </div>
-                            <div class="col-md-2">
-                                <button class="btn btn-primary btn-sm w-100" onclick="refreshQueryTable()">
-                                    <i class="bi bi-search"></i> 查詢
-                                </button>
-                            </div>
-                        </div>
-
-                        <table class="table table-bordered table-hover text-center align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>狀態/類型</th>
-                                    <th>作業日期</th>
-                                    <th>單號</th>
-                                    <th>經銷商</th>
-                                    <th>機號 (SN)</th>
-                                    <th>分公司</th>
-                                </tr>
-                            </thead>
-                            <tbody id="queryTableBody">
-                                <!-- JS 生成內容 -->
-                            </tbody>
-                        </table>
-                        <div class="text-muted small text-end">目前顯示筆數: <span id="qTotalCount">0</span></div>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </div>
 
-    <!-- JS 邏輯區 -->
+    <!-- ================= 詳細資料 Modal (編輯與檢核) ================= -->
+    <div class="modal fade" id="detailModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="modalTitle">單據明細</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+
+                    <!-- 狀態警示 -->
+                    <div id="modalAlert" class="alert mb-3"></div>
+
+                    <!-- 單頭資訊 -->
+                    <div class="row g-2 mb-3 bg-light p-2 rounded mx-0 border">
+                        <div class="col-3"><small class="text-muted d-block">單號</small><strong id="mNo"></strong></div>
+                        <div class="col-3"><small class="text-muted d-block">經銷商</small><strong id="mDealer"></strong>
+                        </div>
+                        <div class="col-3"><small class="text-muted d-block">日期</small><strong id="mDate"></strong>
+                        </div>
+                        <div class="col-3"><small class="text-muted d-block">上限台數</small><strong id="mMaxQty"
+                                class="text-danger fs-5"></strong></div>
+                    </div>
+
+                    <!-- 機號列表 -->
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="fw-bold mb-0 text-primary">機號明細</h6>
+                        <button id="mBtnAddSn" class="btn btn-sm btn-success" onclick="modalAddSnRow()">
+                            <i class="bi bi-plus-lg"></i> 新增機號
+                        </button>
+                    </div>
+
+                    <div class="border rounded overflow-hidden">
+                        <div class="table-responsive" style="max-height: 300px;">
+                            <table class="table table-striped table-hover mb-0 align-middle">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th style="width:50px;" class="text-center">#</th>
+                                        <th>機號內容</th>
+                                        <th style="width:60px;" class="text-center">移除</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modalSnBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="text-end mt-2 small text-muted">
+                        目前數量: <span id="mCurrentCount" class="fw-bold text-dark">0</span>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <span id="mFooterStatus" class="me-auto fw-bold text-muted small"></span>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+                    <button type="button" class="btn btn-primary" id="mBtnSave" onclick="saveModalChanges()">
+                        <i class="bi bi-check-lg"></i> 確認更新
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
-        // ================= 1. 資料庫與 Mock Data =================
+        // ================= 1. 初始化 Mock 資料 =================
 
-        // 這是 "T-100 資料庫" (模擬單號查詢用，更新為電器行)
+        // T-100 查詢模擬
         const t100Database = {
-            'SHIP-20251224': { dealer: '大明電器行', branch: '台北總公司', date: '2025-12-24', qty: 5 },
-            'SHIP-20251225': { dealer: '小陳電器行', branch: '台中分公司', date: '2025-12-25', qty: 3 },
-            'SHIP-20251230': { dealer: '阿華影音', branch: '高雄分公司', date: '2025-12-30', qty: 10 },
-            'RET-20250105': { dealer: '大明電器行', branch: '台北總公司', date: '2025-01-05', qty: 2 },
-            'RET-20250108': { dealer: '阿華影音', branch: '桃園倉', date: '2025-01-08', qty: 10 },
-            'RET-20250110': { dealer: '老張家電', branch: '台北總公司', date: '2025-01-10', qty: 1 },
+            'SHIP-20251224': { dealer: '大明電器行', date: '2025-12-24', qty: 5 },
+            'SHIP-20251225': { dealer: '小陳電器行', date: '2025-12-25', qty: 3 },
+            'RET-20250105': { dealer: '大明電器行', date: '2025-01-05', qty: 2 },
         };
 
-        // 這是 "已完成作業資料庫" (查詢列表用，預先塞入大量假資料)
-        let historicalRecords = generateMockHistory(40);
+        // 歷史資料庫 (自動產生假資料供查詢)
+        let orderDatabase = generateMockData(30);
 
-        // 應用程式狀態
-        const appState = {
-            ship: { active: null, scanned: [] },
-            return: { active: null, scanned: [] }
-        };
+        // 暫存狀態
+        const appState = { ship: { active: null, scanned: [] }, return: { active: null, scanned: [] } };
 
-        // --- 假資料產生器 (更新經銷商與機型) ---
-        function generateMockHistory(count) {
-            const dealers = ['大明電器行', '小陳電器行', '阿華影音', '老張家電', '美美電器行', '東東家電', '永和水電行'];
-            const models = ['FI-29CSG', 'FI41CSG', 'FI63CSG', 'FI80CSG'];
-            const branches = ['台北總公司', '台中分公司', '高雄分公司'];
+        // --- 假資料生成函數 ---
+        function generateMockData(count) {
+            const dealers = ['大明電器行', '小陳電器行', '阿華影音', '老張家電'];
+            const models = ['FI-29CSG', 'FI-41CSG', 'FI-63CSG'];
             const data = [];
 
             for (let i = 0; i < count; i++) {
-                const isShip = Math.random() > 0.3; // 70% 是出貨
+                const isShip = Math.random() > 0.3;
+                const isPosted = Math.random() > 0.5;
                 const type = isShip ? '出貨' : '銷退';
-                const dateStr = `2025-${Math.floor(Math.random() * 12) + 1}`.padStart(7, '0') + `-${Math.floor(Math.random() * 28) + 1}`.padStart(2, '0');
-                const model = models[Math.floor(Math.random() * models.length)];
+                // 隨機日期 (最近 30 天)
+                const d = new Date();
+                d.setDate(d.getDate() - Math.floor(Math.random() * 30));
+                const dateStr = d.toISOString().split('T')[0];
+
+                const no = (isShip ? 'SHIP-' : 'RET-') + dateStr.replace(/-/g, '') + (100 + i);
+                const maxQty = Math.floor(Math.random() * 5) + 3; // 隨機上限 3~7
+
+                // 隨機產生機號 (不超過上限)
+                const items = [];
+                const currentQty = Math.floor(Math.random() * maxQty) + 1;
+                for (let j = 0; j < currentQty; j++) {
+                    const model = models[Math.floor(Math.random() * models.length)];
+                    items.push({ sn: `${model}-${10000 + i + j}` });
+                }
 
                 data.push({
+                    no: no,
                     type: type,
-                    date: dateStr,
-                    no: (isShip ? 'SHIP-' : 'RET-') + dateStr.replace(/-/g, '') + (100 + i),
                     dealer: dealers[Math.floor(Math.random() * dealers.length)],
-                    branch: branches[Math.floor(Math.random() * branches.length)],
-                    // 產生類似 FI-29CSG-2025001 的序號
-                    sn: `${model}-${Math.floor(Math.random() * 90000) + 10000}`,
-                    timestamp: new Date().getTime() - (Math.random() * 10000000000)
+                    date: dateStr,
+                    maxQty: maxQty, // 重要：記錄原始單據上限
+                    isPosted: isPosted,
+                    items: items,
+                    timestamp: d.getTime()
                 });
             }
-            // 按時間排序
             return data.sort((a, b) => b.timestamp - a.timestamp);
         }
 
-        // ================= 2. 核心邏輯：拉取 T-100 資料 =================
-        function fetchOrderData(type) {
-            const inputId = type === 'ship' ? 'shipOrderInput' : 'returnOrderInput';
-            const orderNo = document.getElementById(inputId).value.trim();
+        // ================= 2. 查詢與篩選 (重點需求) =================
 
-            if (!orderNo) { alert('請輸入單號'); return; }
+        document.addEventListener('DOMContentLoaded', () => {
+            // 設定預設日期 (最近7天)
+            const today = new Date().toISOString().split('T')[0];
+            const lastWeek = new Date();
+            lastWeek.setDate(lastWeek.getDate() - 7);
+            document.getElementById('qEndDate').value = today;
+            document.getElementById('qStartDate').value = lastWeek.toISOString().split('T')[0];
 
-            // 模擬延遲
-            setTimeout(() => {
-                const result = t100Database[orderNo];
-
-                if (result) {
-                    // 檢查單據類型是否匹配 (出貨 vs 銷退)
-                    if ((type === 'ship' && orderNo.startsWith('RET')) || (type === 'return' && orderNo.startsWith('SHIP'))) {
-                        alert('⚠️ 單據類型不符！\n出貨作業不能掃描銷退單，反之亦然。');
-                        return;
-                    }
-
-                    appState[type].active = { ...result, no: orderNo };
-                    appState[type].scanned = []; // 清空之前的掃描
-
-                    // 更新 UI
-                    document.getElementById(`${type}OrderInfo`).classList.remove('d-none');
-                    document.getElementById(`${type}NoDisplay`).innerText = orderNo;
-                    document.getElementById(`${type}DealerDisplay`).innerText = result.dealer; // 顯示經銷商
-                    document.getElementById(`${type}BranchDisplay`).innerText = result.branch;
-                    document.getElementById(`${type}DateDisplay`).innerText = result.date;
-                    document.getElementById(`${type}QtyDisplay`).innerText = result.qty;
-
-                    updateScanUI(type);
-
-                    // 自動聚焦到機號欄位
-                    document.getElementById(`${type}ItemInput`).focus();
-                } else {
-                    alert('❌ T-100 查無此單號資料！\n(請使用測試小幫手的按鈕來模擬有效單號)');
-                }
-            }, 300);
-        }
-
-        // ================= 3. 核心邏輯：掃描機號 =================
-        // 綁定 Enter 事件
-        ['ship', 'return'].forEach(type => {
-            const input = document.getElementById(`${type}ItemInput`);
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    processScan(type, input.value.trim());
-                }
-            });
+            refreshQueryTable();
         });
 
-        function processScan(type, sn) {
-            const state = appState[type];
-            const input = document.getElementById(`${type}ItemInput`);
-
-            if (!sn) return;
-            if (!state.active) { alert('請先讀取單號'); return; }
-
-            // 1. 檢查上限
-            if (state.scanned.length >= state.active.qty) {
-                alert(`⛔ 已達單據上限 (${state.active.qty} 台)，無法再掃描！`);
-                input.value = '';
-                return;
-            }
-
-            // 2. 檢查重複 (在此單據內)
-            if (state.scanned.some(x => x.sn === sn)) {
-                alert(`⚠️ 機號 ${sn} 已在此單據中！`);
-                input.value = '';
-                input.select();
-                return;
-            }
-
-            // 3. 加入
-            state.scanned.push({ sn: sn, time: new Date().toLocaleTimeString() });
-            updateScanUI(type);
-
-            input.value = ''; // 清空準備下一掃
-        }
-
-        function removeScan(type, index) {
-            if (confirm('確定移除此筆掃描？')) {
-                appState[type].scanned.splice(index, 1);
-                updateScanUI(type);
-            }
-        }
-
-        function updateScanUI(type) {
-            const state = appState[type];
-            const listBody = document.getElementById(`${type}ListBody`);
-            const countDisplay = document.getElementById(`${type}CurrentCount`);
-            const progressDisplay = document.getElementById(`${type}Progress`);
-
-            // 更新計數
-            countDisplay.innerText = `${state.scanned.length} / ${state.active.qty}`;
-            progressDisplay.innerText = `進度: ${state.scanned.length} / ${state.active.qty}`;
-
-            // 更新列表 (反序)
-            let html = '';
-            [...state.scanned].reverse().forEach((item, i) => {
-                const realIdx = state.scanned.length - 1 - i;
-                html += `
-                <tr>
-                    <td>${state.scanned.length - i}</td>
-                    <td class="fw-bold text-primary">${item.sn}</td>
-                    <td>${item.time}</td>
-                    <td><button class="btn btn-sm btn-outline-danger" onclick="removeScan('${type}', ${realIdx})">X</button></td>
-                </tr>
-            `;
-            });
-            listBody.innerHTML = html;
-        }
-
-        // ================= 4. 核心邏輯：送出資料 (Submit) =================
-        function submitData(type) {
-            const state = appState[type];
-
-            if (!state.active) return;
-            if (state.scanned.length === 0) {
-                alert('尚未掃描任何機號，無法送出！');
-                return;
-            }
-
-            // 模擬確認視窗
-            if (!confirm(`確認送出 ${state.scanned.length} 筆資料嗎？\n單號: ${state.active.no}`)) return;
-
-            // 將掃描的資料轉換格式，存入全域歷史紀錄 (historicalRecords)
-            const newRecords = state.scanned.map(item => ({
-                type: type === 'ship' ? '出貨' : '銷退',
-                date: new Date().toISOString().split('T')[0], // 今天
-                no: state.active.no,
-                dealer: state.active.dealer,
-                branch: state.active.branch,
-                sn: item.sn,
-                timestamp: new Date().getTime()
-            }));
-
-            // 加入最前端
-            historicalRecords.unshift(...newRecords);
-
-            alert('✅ 資料已成功送出！\n您可以前往「查詢列表」查看。');
-
-            // 重置該頁面狀態
-            appState[type] = { active: null, scanned: [] };
-            document.getElementById(`${type}OrderInfo`).classList.add('d-none');
-            document.getElementById(`${type}OrderInput`).value = '';
-            document.getElementById(`${type}ListBody`).innerHTML = '';
-
-            // 自動刷新查詢頁面 (雖然使用者還沒切過去，但確保資料是最新的)
+        function resetQuery() {
+            document.getElementById('queryForm').reset();
             refreshQueryTable();
         }
 
-        // ================= 5. 查詢頁面邏輯 =================
-        // 頁面載入時先執行一次
-        document.addEventListener('DOMContentLoaded', refreshQueryTable);
-
         function refreshQueryTable() {
+            const start = document.getElementById('qStartDate').value;
+            const end = document.getElementById('qEndDate').value;
+            const dealer = document.getElementById('qDealer').value.toLowerCase();
             const keyword = document.getElementById('qKeyword').value.toLowerCase();
-            const dealerKw = document.getElementById('qDealer').value.toLowerCase();
-            const typeKw = document.getElementById('qType').value;
-            const startKw = document.getElementById('qStart').value;
-            const endKw = document.getElementById('qEnd').value;
-
+            const status = document.getElementById('qStatus').value;
             const tbody = document.getElementById('queryTableBody');
             tbody.innerHTML = '';
 
-            // 篩選
-            const filtered = historicalRecords.filter(item => {
-                let pass = true;
-                if (keyword && !item.no.toLowerCase().includes(keyword) && !item.sn.toLowerCase().includes(keyword)) pass = false;
-                if (dealerKw && !item.dealer.toLowerCase().includes(dealerKw)) pass = false;
-                if (typeKw && item.type !== typeKw) pass = false;
-                if (startKw && item.date < startKw) pass = false;
-                if (endKw && item.date > endKw) pass = false;
-                return pass;
+            const filtered = orderDatabase.filter(order => {
+                // 1. 日期區間
+                if (start && order.date < start) return false;
+                if (end && order.date > end) return false;
+                // 2. 經銷商
+                if (dealer && !order.dealer.includes(dealer)) return false;
+                // 3. 關鍵字 (查單號 或 查機號)
+                if (keyword) {
+                    const matchNo = order.no.toLowerCase().includes(keyword);
+                    const matchSn = order.items.some(i => i.sn.toLowerCase().includes(keyword));
+                    if (!matchNo && !matchSn) return false;
+                }
+                // 4. 狀態
+                if (status === 'posted' && !order.isPosted) return false;
+                if (status === 'pending' && order.isPosted) return false;
+
+                return true;
             });
 
             document.getElementById('qTotalCount').innerText = filtered.length;
 
-            // 渲染 (只顯示前 50 筆避免 DOM 過大)
-            filtered.slice(0, 50).forEach(item => {
-                const badgeClass = item.type === '出貨' ? 'badge-status-ship' : 'badge-status-return';
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-muted py-4">查無符合條件的資料</td></tr>';
+                return;
+            }
+
+            filtered.forEach(order => {
+                let statusBadge, linkClass;
+                if (order.isPosted) {
+                    statusBadge = '<span class="badge badge-posted">已過帳</span>';
+                    linkClass = 'link-posted';
+                } else {
+                    statusBadge = '<span class="badge badge-pending">未過帳</span>';
+                    linkClass = 'link-pending';
+                }
+
+                const typeBadge = order.type === '出貨' ? 'badge-ship' : 'badge-return';
+
+                // 機號欄位處理：如果太多，只顯示前2筆
+                let snDisplay = order.items.map(i => i.sn).join(', ');
+                if (order.items.length > 2) {
+                    snDisplay = order.items.slice(0, 2).map(i => i.sn).join(', ') +
+                        ` <span class="badge bg-light text-dark border">+${order.items.length - 2}</span>`;
+                }
+
                 const tr = `
                 <tr>
-                    <td><span class="badge ${badgeClass}">${item.type}</span></td>
-                    <td>${item.date}</td>
-                    <td>${item.no}</td>
-                    <td class="fw-bold">${item.dealer}</td>
-                    <td class="text-primary">${item.sn}</td>
-                    <td>${item.branch}</td>
+                    <td>${statusBadge}</td>
+                    <td><a onclick="openDetailModal('${order.no}')" class="order-link ${linkClass}">${order.no}</a></td>
+                    <td><span class="badge ${typeBadge}">${order.type}</span></td>
+                    <td>${order.dealer}</td>
+                    <td class="text-start text-break">${snDisplay}</td>
+                    <td>${order.date}</td>
+                    <td>${order.maxQty}</td>
                 </tr>
             `;
                 tbody.innerHTML += tr;
             });
         }
 
-        // ================= 6. 測試小幫手 (模擬器) =================
-        document.getElementById('shipOrderInput').addEventListener('keydown', e => { if (e.key === 'Enter') fetchOrderData('ship'); });
-        document.getElementById('returnOrderInput').addEventListener('keydown', e => { if (e.key === 'Enter') fetchOrderData('return'); });
+        // ================= 3. 詳細資料編輯 (含數量檢核) =================
 
-        function simulateScan(field, value) {
-            // 判斷目前 Tab
-            const isShip = document.getElementById('ship-pane').classList.contains('show');
-            const isReturn = document.getElementById('return-pane').classList.contains('show');
+        let currentEditNo = null;
 
-            if (!isShip && !isReturn) {
-                alert('請先切換到「出貨」或「銷退」頁籤再使用模擬按鈕。');
+        function openDetailModal(no) {
+            const order = orderDatabase.find(o => o.no === no);
+            if (!order) return;
+            currentEditNo = no;
+
+            const modalEl = new bootstrap.Modal(document.getElementById('detailModal'));
+
+            // 填入單頭
+            document.getElementById('mNo').innerText = order.no;
+            document.getElementById('mDealer').innerText = order.dealer;
+            document.getElementById('mDate').innerText = order.date;
+            document.getElementById('mMaxQty').innerText = order.maxQty; // 顯示上限
+            document.getElementById('modalTitle').innerText = `${order.type}單明細 - ${order.no}`;
+
+            const alertBox = document.getElementById('modalAlert');
+            const saveBtn = document.getElementById('mBtnSave');
+            const addBtn = document.getElementById('mBtnAddSn');
+
+            // 權限判斷
+            if (order.isPosted) {
+                // 已過帳 -> 唯讀
+                alertBox.className = 'alert alert-secondary';
+                alertBox.innerHTML = '<i class="bi bi-lock-fill"></i> 此單據已過帳，僅供檢視。';
+                saveBtn.classList.add('d-none');
+                addBtn.classList.add('d-none');
+                document.getElementById('mFooterStatus').innerText = "權限：唯讀";
+                renderSnList(order.items, true);
+            } else {
+                // 未過帳 -> 可編輯 (需注意上限)
+                alertBox.className = 'alert alert-success';
+                alertBox.innerHTML = `<i class="bi bi-pencil-fill"></i> 可編輯模式。注意：機號總數不可超過 <strong>${order.maxQty}</strong> 台。`;
+                saveBtn.classList.remove('d-none');
+                addBtn.classList.remove('d-none');
+                document.getElementById('mFooterStatus').innerText = "權限：可編輯";
+                renderSnList(order.items, false);
+            }
+
+            modalEl.show();
+        }
+
+        function renderSnList(items, isReadOnly) {
+            const tbody = document.getElementById('modalSnBody');
+            tbody.innerHTML = '';
+            items.forEach((item, idx) => {
+                const inputHtml = isReadOnly ?
+                    `<input type="text" class="form-control-plaintext" readonly value="${item.sn}">` :
+                    `<input type="text" class="form-control form-control-sm" value="${item.sn}">`;
+
+                const btnHtml = isReadOnly ? '-' :
+                    `<button class="btn btn-sm btn-outline-danger py-0" onclick="this.closest('tr').remove(); updateModalCount();"><i class="bi bi-x"></i></button>`;
+
+                tbody.innerHTML += `<tr><td class="text-center">${idx + 1}</td><td>${inputHtml}</td><td class="text-center">${btnHtml}</td></tr>`;
+            });
+            updateModalCount();
+        }
+
+        function modalAddSnRow() {
+            const tbody = document.getElementById('modalSnBody');
+            const count = tbody.rows.length + 1;
+            tbody.insertAdjacentHTML('beforeend', `
+            <tr>
+                <td class="text-center">${count}</td>
+                <td><input type="text" class="form-control form-control-sm border-success" placeholder="新機號..."></td>
+                <td class="text-center"><button class="btn btn-sm btn-outline-danger py-0" onclick="this.closest('tr').remove(); updateModalCount();"><i class="bi bi-x"></i></button></td>
+            </tr>
+        `);
+            updateModalCount();
+        }
+
+        function updateModalCount() {
+            const count = document.getElementById('modalSnBody').rows.length;
+            document.getElementById('mCurrentCount').innerText = count;
+        }
+
+        // [核心邏輯] 儲存檢核
+        function saveModalChanges() {
+            const order = orderDatabase.find(o => o.no === currentEditNo);
+            if (!order || order.isPosted) return; // 防呆
+
+            const inputs = document.querySelectorAll('#modalSnBody input');
+            const newItems = [];
+            inputs.forEach(inp => { if (inp.value.trim()) newItems.push({ sn: inp.value.trim() }); });
+
+            // 1. 檢核：數量是否超過上限
+            if (newItems.length > order.maxQty) {
+                alert(`⛔ 錯誤：目前機號數量 (${newItems.length}) 已超過此單據上限 (${order.maxQty})！\n無法存檔，請移除多餘的機號。`);
                 return;
             }
 
-            const type = isShip ? 'ship' : 'return';
+            // 2. 存檔
+            order.items = newItems;
+            alert("✅ 資料更新成功！");
+            bootstrap.Modal.getInstance(document.getElementById('detailModal')).hide();
+            refreshQueryTable();
+        }
 
-            if (field === 'order') {
-                document.getElementById(`${type}OrderInput`).value = value;
-                fetchOrderData(type);
-            } else if (field === 'item') {
-                if (value === 'GEN-RANDOM') {
-                    const models = ['FI-29CSG', 'FI41CSG', 'FI63CSG', 'FI80CSG'];
-                    const m = models[Math.floor(Math.random() * models.length)];
-                    value = `${m}-${Math.floor(Math.random() * 90000) + 10000}`;
+        // ================= 4. 出貨/銷退作業邏輯 =================
+
+        // Enter 鍵監聽
+        ['ship', 'return'].forEach(t => {
+            document.getElementById(t + 'OrderInput').addEventListener('keydown', e => { if (e.key === 'Enter') fetchOrderData(t) });
+            document.getElementById(t + 'ItemInput').addEventListener('keydown', e => { if (e.key === 'Enter') processScan(t, e.target.value) });
+        });
+
+        function fetchOrderData(type) {
+            const no = document.getElementById(type + 'OrderInput').value.trim();
+            if (!no) return alert('請輸入單號');
+
+            // 模擬從 T-100 獲取資料
+            setTimeout(() => {
+                const res = t100Database[no];
+                if (res) {
+                    if (orderDatabase.find(o => o.no === no)) return alert('此單號已作業過！');
+
+                    appState[type].active = { ...res, no: no };
+                    appState[type].scanned = [];
+
+                    // UI 顯示
+                    document.getElementById(type + 'OrderInfo').classList.remove('d-none');
+                    document.getElementById(type + 'NoDisplay').innerText = no;
+                    document.getElementById(type + 'DealerDisplay').innerText = res.dealer;
+                    document.getElementById(type + 'QtyDisplay').innerText = res.qty;
+                    updateScanList(type);
+                    document.getElementById(type + 'ItemInput').focus();
+                } else {
+                    alert('T-100 查無此單號 (請使用測試按鈕)');
                 }
-                document.getElementById(`${type}ItemInput`).value = value;
-                processScan(type, value);
+            }, 200);
+        }
+
+        function processScan(type, sn) {
+            sn = sn.trim();
+            const state = appState[type];
+            if (!sn || !state.active) return;
+
+            if (state.scanned.length >= state.active.qty) return alert('已達數量上限！');
+            if (state.scanned.find(i => i.sn === sn)) return alert('機號重複！');
+
+            state.scanned.push({ sn: sn });
+            updateScanList(type);
+            document.getElementById(type + 'ItemInput').value = '';
+        }
+
+        function updateScanList(type) {
+            const list = document.getElementById(type + 'ListBody');
+            const state = appState[type];
+            document.getElementById(type + 'CurrentCount').innerText = `${state.scanned.length} / ${state.active.qty}`;
+            list.innerHTML = state.scanned.map((item, i) => `
+            <tr><td>${i + 1}</td><td class="fw-bold">${item.sn}</td>
+            <td><button class="btn btn-sm btn-outline-danger" onclick="appState['${type}'].scanned.splice(${i},1);updateScanList('${type}')">X</button></td></tr>
+        `).reverse().join('');
+        }
+
+        function submitData(type) {
+            const state = appState[type];
+            if (!state.active || state.scanned.length === 0) return alert('無資料');
+
+            if (confirm('確認送出？')) {
+                orderDatabase.unshift({
+                    no: state.active.no,
+                    type: type === 'ship' ? '出貨' : '銷退',
+                    dealer: state.active.dealer,
+                    date: new Date().toISOString().split('T')[0],
+                    maxQty: state.active.qty, // 重要：記錄原始上限供編輯時檢核
+                    isPosted: false,
+                    items: [...state.scanned],
+                    timestamp: Date.now()
+                });
+                alert('✅ 送出成功 (未過帳)');
+                document.getElementById(type + 'OrderInfo').classList.add('d-none');
+                document.getElementById(type + 'OrderInput').value = '';
+                appState[type] = { active: null, scanned: [] };
+                refreshQueryTable();
             }
+        }
+
+        // ================= 5. 測試模擬器 =================
+        function simulateScan(field, val) {
+            const type = document.getElementById('ship-pane').classList.contains('active') ? 'ship' : 'return';
+            const inputId = field === 'order' ? type + 'OrderInput' : type + 'ItemInput';
+            if (val === 'GEN-RANDOM') val = 'FI-99CSG-' + Math.floor(Math.random() * 9999);
+            document.getElementById(inputId).value = val;
+            if (field === 'order') fetchOrderData(type);
+            else processScan(type, val);
         }
     </script>
 </body>
